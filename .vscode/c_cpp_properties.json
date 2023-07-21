@@ -1,0 +1,31 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/local/include",
+                "/usr/local/include/opencv4",
+                "/usr/local/cuda/include",
+                "/usr/include/aarch64-linux-gnu",
+                "/usr/local/protobuf-3.11.4-cpp/include"
+                // "/usr/local/TensorRT-8.5.3.1/include",
+            ],
+            "browse": {"path": [
+                "${workspaceFolder}/**",
+                "/usr/local/include",
+                "/usr/local/include/opencv4",
+                "/usr/local/cuda/include",
+                "/usr/include/aarch64-linux-gnu",
+                "/usr/local/protobuf-3.11.4-cpp/include"
+                // "/usr/local/TensorRT-8.5.3.1/include",
+            ]},
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}
