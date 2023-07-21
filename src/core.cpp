@@ -209,6 +209,8 @@ int runCamera(nvinfer1::IExecutionContext *model, SerialPort* serialPort,
 
     Mat frame_naive, frame;
     size_t cnt = 0;
+    float min_angle = 90;
+    float max_angle = -90;
     while (capture.read(frame_naive)){
         undistort(frame_naive, frame, mat_intri, coff_dis, noArray());//去畸变
         // frame = frame_naive;
@@ -218,10 +220,10 @@ int runCamera(nvinfer1::IExecutionContext *model, SerialPort* serialPort,
         imshow("camera-frame", frame);
         char c = waitKey(1);
         if(! outinfo->valid){
-            ++cnt;
-            if(cnt == 6){
-                while(true){serialPort->Write(hex_to_string("FF010055800000FEFF"));} //走到尽头，刹车！！
-            }
+            // ++cnt;
+            // if(cnt == 6){
+            //     while(true){serialPort->Write(hex_to_string("FF010055800000FEFF"));} //走到尽头，刹车！！
+            // }
             cout << "无效图像 ! ! ! !" << endl;
             cudaFreeHost(output_data_pin);
             delete outinfo;
@@ -233,9 +235,14 @@ int runCamera(nvinfer1::IExecutionContext *model, SerialPort* serialPort,
         // float wheelAngle = control_unit(cam, L, B, 512, v_des, 10, -30);
         cout << "角度偏差: " << outinfo->e_angle << endl;
         cout << "wheelAngle: " << wheelAngle << endl;
+        min_angle = min(min_angle, wheelAngle);
+        max_angle = max(max_angle, wheelAngle);
+        cout<< "min_angle:" << min_angle << endl;
+        cout<< "max_angle:" << max_angle << endl;
+
 
         string signal = angle2signal(serialPort, wheelAngle);      //车轮角度转化为对应的Hex信号
-
+        
         serialPort->Write(hex_to_string(signal));    //串口输出控制信号，下位机转动车轮
         writer.write(frame);
 

@@ -110,10 +110,17 @@ string angle2signal(SerialPort *serialPort, float wheelAngle){
   //   return "FF010155300000FEFF";
   // }
 
+  // 70 78 | 88 90 
   if(wheelAngle < 0){
-    return "FF010155B00000FEFF";
+    if(wheelAngle > -60)
+      return "FF010167900000FEFF";
+    else
+      return "FF010167970000FEFF"; 
   }
   else{
-    return "FF010155500000FEFF";
+    if(wheelAngle < 60)
+      return "FF010167740000FEFF";
+    else
+      return "FF010167700000FEFF";
   }
 }
