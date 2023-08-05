@@ -5,7 +5,7 @@ import cv2
 from PIL import Image
 
 # create INT8_Calib_Unlable_Dataset
-# root = "/media/nvidia/T7 Shield/home_computer/dataset2/images/val"
+# root = "/media/nvidia/T7 Shield/Orin_T906G/dataset/dataset/images/val"
 # dirs = os.listdir(root)
 # for image in tqdm(dirs):
 #     path = os.path.join(root, image)
@@ -19,8 +19,8 @@ from PIL import Image
 # root1 = "/home/rjg/dataset2/images/val"
 # root2 = "/home/rjg/dataset2/masks"
 
-root1 = "/media/nvidia/T7 Shield/home_computer/dataset2/images/val"
-root2 = "/media/nvidia/T7 Shield/home_computer/dataset2/masks"
+root1 = "/media/nvidia/T7 Shield/Orin_T906G/dataset/dataset/images/val"
+root2 = "/media/nvidia/T7 Shield/Orin_T906G/dataset/dataset/masks"
 dirs = os.listdir(root1)
 for img_name in tqdm(dirs):
     if img_name.split('.')[0][-4:-1] == 'aug':

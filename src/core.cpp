@@ -16,7 +16,7 @@ int build_or_inferOnePicture_FT32(const char* onnx_name, const string& path, int
     size_t input_size = 1*3*256*256;
     size_t output_size = 1*4*256*256;
 
-    Mat src = imread("ceshi.jpg");
+    Mat src = imread("img_33.png");
 
     // cuda预热 setfill('&')
     clock.update();
@@ -70,7 +70,7 @@ int build_or_inferOnePicture_INT8(const char* onnx_name, const string& path, int
     size_t input_size = 1*3*256*256;
     size_t output_size = 1*4*256*256;
 
-    Mat src = imread("ceshi.jpg");
+    Mat src = imread("img_33.png");
 
     // cuda预热 setfill('&')
     clock.update();
@@ -202,7 +202,7 @@ int runCamera(nvinfer1::IExecutionContext *model, SerialPort* serialPort,
     Size S = Size(frame_W, frame_H);
 	int fps = capture.get(CAP_PROP_FPS);
 	printf("current fps : %d \n", fps);
-	VideoWriter writer("/home/nvidia/frame_save/7_21.avi", CAP_ANY, fps, S, true);
+	VideoWriter writer("/home/nvidia/frame_save/8_4.avi", CAP_ANY, fps, S, true);
 
 	namedWindow("camera-frame", 0);
     resizeWindow("camera-frame", 1422, 800); 
@@ -217,8 +217,10 @@ int runCamera(nvinfer1::IExecutionContext *model, SerialPort* serialPort,
         float* pdst_pin = warpaffine_and_normalize_best(frame, resize_scale); //预处理
         float* output_data_pin = inference(model, pdst_pin, input_data_size, output_data_size); //模型预测结果
         OutInfo* outinfo = postprocess_no(frame, output_data_pin); //后处理
+        // OutInfo* outinfo = postprocess(frame, output_data_pin); //后处理
         imshow("camera-frame", frame);
         char c = waitKey(1);
+        cout << ++cnt << endl;
         if(! outinfo->valid){
             // ++cnt;
             // if(cnt == 6){
@@ -229,7 +231,7 @@ int runCamera(nvinfer1::IExecutionContext *model, SerialPort* serialPort,
             delete outinfo;
             continue;
         }
-        cnt = 0;
+        // cnt = 0;
         
         float wheelAngle = control_unit(cam, L, B, frame_H, v_des, outinfo->ex, outinfo->e_angle);    // control, wheelAngle区间范围[-90, 90]
         // float wheelAngle = control_unit(cam, L, B, 512, v_des, 10, -30);
@@ -237,12 +239,11 @@ int runCamera(nvinfer1::IExecutionContext *model, SerialPort* serialPort,
         cout << "wheelAngle: " << wheelAngle << endl;
         min_angle = min(min_angle, wheelAngle);
         max_angle = max(max_angle, wheelAngle);
-        cout<< "min_angle:" << min_angle << endl;
-        cout<< "max_angle:" << max_angle << endl;
+
 
 
         string signal = angle2signal(serialPort, wheelAngle);      //车轮角度转化为对应的Hex信号
-        
+        cout << signal << endl;
         serialPort->Write(hex_to_string(signal));    //串口输出控制信号，下位机转动车轮
         writer.write(frame);
 
@@ -252,7 +253,8 @@ int runCamera(nvinfer1::IExecutionContext *model, SerialPort* serialPort,
 			break;
 		}
     }
-    
+    cout<< "min_angle:" << min_angle << endl;
+    cout<< "max_angle:" << max_angle << endl;
     cv::destroyAllWindows();
     capture.release();
     writer.release();
@@ -271,12 +273,12 @@ int runRobot(const string& path, const cv::Size &resize_scale, const size_t &inp
     serialPort->SetTimeout(0);                                                             //无阻塞， -1：阻塞接受
     serialPort->Open();                                                                    //打开串口
     
-    serialPort->Write(hex_to_string("FF010155800000FEFF"));                    // 启动农机，速度30，正方向 
+    serialPort->Write(hex_to_string("FF010172800000FEFF"));                    // 启动农机，速度30，正方向 
 
     runCamera(model, serialPort, resize_scale, input_size, output_size, cam, v_des, L, B); //运行相机，开始无人导航
                                          
     // serialPort->Close();
-    while(true){serialPort->Write(hex_to_string("FF010055800000FEFF"));}  // 刹车复位，车轮摆正     
+    while(true){serialPort->Write(hex_to_string("FF010072800000FEFF"));}  // 刹车复位，车轮摆正     
 
     delete serialPort;
     delete params;

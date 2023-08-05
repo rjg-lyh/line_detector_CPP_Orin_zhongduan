@@ -16,8 +16,8 @@ def visualServoingCtl (camera, desiredState, actualState, v_des):         #camer
     theta = actualState[2]       # 角度
     
     # some crazy parameters   
-    lambda_x_1 = 10               #  自己设定的正系数
-    lambda_w_1= 3000              #  自己设定的正系数
+    lambda_x_1 = 10000              #  自己设定的正系数
+    lambda_w_1= 10000           #  自己设定的正系数
     lambdavec = np.array([lambda_x_1,lambda_w_1])
     
     # state if it is a row or a column controller
@@ -29,7 +29,13 @@ def visualServoingCtl (camera, desiredState, actualState, v_des):         #camer
     # relates the control variables [v,w] in the camera frame to the change of the features [x,y,theta]
     angle = camera.tilt_angle         #相机与水平面的夹角
     delta_z = camera.deltaz          # 相机距离地面的高度
-    IntMat = np.array([[(-np.sin(angle)-y*np.cos(angle))/delta_z, 0, x*(np.sin(angle)+y*np.cos(angle))/delta_z, x*y, -1-x**2,  y],
+    # IntMat = np.array([[(-np.sin(angle)-y*np.cos(angle))/delta_z, 0, x*(np.sin(angle)+y*np.cos(angle))/delta_z, x*y, -1-x**2,  y],
+    #                    [0, -(np.sin(angle)+y*np.cos(angle))/delta_z, y*(np.sin(angle)+y*np.cos(angle))/delta_z, 1+y**2, -x*y, -x],
+    #                    [np.cos(angle)*np.power(np.cos(theta),2)/delta_z, np.cos(angle)*np.cos(theta)*np.sin(theta)/delta_z, 
+    #                     -(np.cos(angle)*np.cos(theta)*(y*np.sin(theta) + x*np.cos(theta)))/delta_z, 
+    #                     -(y*np.sin(theta) + x*np.cos(theta))*np.cos(theta), -(y*np.sin(theta) + x*np.cos(theta))*np.sin(theta), -1]])
+    
+    IntMat = np.array([[(-np.sin(angle)-y/f*np.cos(angle))/delta_z, 0, x*(np.sin(angle)+y*np.cos(angle))/delta_z, x*y, -1-x**2,  y],
                        [0, -(np.sin(angle)+y*np.cos(angle))/delta_z, y*(np.sin(angle)+y*np.cos(angle))/delta_z, 1+y**2, -x*y, -x],
                        [np.cos(angle)*np.power(np.cos(theta),2)/delta_z, np.cos(angle)*np.cos(theta)*np.sin(theta)/delta_z, 
                         -(np.cos(angle)*np.cos(theta)*(y*np.sin(theta) + x*np.cos(theta)))/delta_z, 
@@ -79,14 +85,20 @@ class Camera:            # 相机的各个参数
 
 
 if __name__ == '__main__':
+    # Camera cam(0, 1.35, 1.1, deg2rad(-45));  // 相机位置dx, dy, dz, camera_degree
 
-    camera = Camera(1,1.2,0,1,np.deg2rad(-80),0.96,0,0,1)    #相机参数
-    imgWidth = 512                                           #图像的宽高
-    P = [10]                                                 #下交点的坐标，像素坐标系
-    Angle = np.deg2rad(-30)                                 #导航线夹角
-    desiredState = np.array([0.0, imgWidth/2, 0.0])
-    actualState = np.array([P[0], imgWidth/2, Angle])
-    v_des = 0.2                                              #设定好的线速度  m/s
+    # float v_des = 0.2;                   // 车轮转速
+    # float L = 1.2;                        // 车身长度
+    # float B = 0.57;                        // 轮间半轴长度
+
+    # camera = Camera(1,1.2,0,1,np.deg2rad(-80),0.96,0,0,1)    #相机参数
+    camera = Camera(0, 0, 1.35, 1.1, np.deg2rad(-45),0.96,0,0,1)
+    imgHeight = 1080                                          #图像的宽高
+    P = [100]                                                 #下交点的坐标，像素坐标系
+    Angle = np.deg2rad(8)                                 #导航线夹角
+    desiredState = np.array([0.0, imgHeight/2, 0.0])
+    actualState = np.array([P[0], imgHeight/2, Angle])
+    v_des = 0.2                                             #设定好的线速度  m/s
 
 
     w = visualServoingCtl(camera, desiredState, actualState, v_des)
