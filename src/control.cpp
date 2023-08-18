@@ -91,10 +91,7 @@ float control_unit(Camera& cam, float L, float B, float frame_height, float v_de
   float w = visualServoingCtl(cam, desiredState, actualState, v_des);
   cout << "机器人的反馈角速度: " << w << "rad/s" << endl;
 
-  float wheelAngle = getWheelAngle(w, v_des, L, B);
-  // cout << "车轮转角：" << wheelAngle << endl;
-
-  return wheelAngle;
+  return w;
 }
 
 string angle2signal(SerialPort *serialPort, float wheelAngle){
@@ -126,14 +123,14 @@ string angle2signal(SerialPort *serialPort, float wheelAngle){
 
   if(wheelAngle < 0){
     if(wheelAngle > -60)
-      return "FF010172880000FEFF";
+      return "FF010172900000FEFF";
     else
       return "FF010172900000FEFF";
   }
   else{
     if(wheelAngle < 70)
-      return "FF010172780000FEFF";
+      return "FF010172720000FEFF";
     else
-      return "FF010172700000FEFF";
+      return "FF010172720000FEFF";
   }
 }

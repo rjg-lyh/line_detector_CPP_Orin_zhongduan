@@ -18,6 +18,9 @@ int build_or_inferOnePicture_FT32(const char* onnx_name, const string& path, int
 
     Mat src = imread("img_33.png");
 
+    //高斯滤波
+    cv::GaussianBlur(src, src, cv::Size(11,11), 11);
+
     // cuda预热 setfill('&')
     clock.update();
     warm_up_cuda(resize_scale);
@@ -71,6 +74,9 @@ int build_or_inferOnePicture_INT8(const char* onnx_name, const string& path, int
     size_t output_size = 1*4*256*256;
 
     Mat src = imread("img_33.png");
+
+    //高斯滤波
+    cv::GaussianBlur(src, src, cv::Size(11,11),11);
 
     // cuda预热 setfill('&')
     clock.update();
@@ -144,6 +150,7 @@ int performance_test(const string& path, const string& img_path, const string& l
         cv::Mat image = cv::imread(images[i]);
         cv::Mat label = cv::imread(labels[i]);
         cv::resize(label, label, cv::Size(256, 256));
+        cv::GaussianBlur(image, image, cv::Size(11,11), 11);
         float* pdst_pin = warpaffine_and_normalize_best(image, resize_scale);
 
         clock.update();
@@ -202,7 +209,7 @@ int runCamera(nvinfer1::IExecutionContext *model, SerialPort* serialPort,
     Size S = Size(frame_W, frame_H);
 	int fps = capture.get(CAP_PROP_FPS);
 	printf("current fps : %d \n", fps);
-	VideoWriter writer("/home/nvidia/frame_save/8_4.avi", CAP_ANY, fps, S, true);
+	VideoWriter writer("/home/nvidia/frame_save/8_18.avi", CAP_ANY, fps, S, true);
 
 	namedWindow("camera-frame", 0);
     resizeWindow("camera-frame", 1422, 800); 
@@ -211,8 +218,11 @@ int runCamera(nvinfer1::IExecutionContext *model, SerialPort* serialPort,
     size_t cnt = 0;
     float min_angle = 90;
     float max_angle = -90;
+    ofstream ofs("trace_record.txt", ios::out);
+
     while (capture.read(frame_naive)){
         undistort(frame_naive, frame, mat_intri, coff_dis, noArray());//去畸变
+        cv::GaussianBlur(frame, frame, cv::Size(11,11),11);
         // frame = frame_naive;
         float* pdst_pin = warpaffine_and_normalize_best(frame, resize_scale); //预处理
         float* output_data_pin = inference(model, pdst_pin, input_data_size, output_data_size); //模型预测结果
@@ -233,14 +243,18 @@ int runCamera(nvinfer1::IExecutionContext *model, SerialPort* serialPort,
         }
         // cnt = 0;
         
-        float wheelAngle = control_unit(cam, L, B, frame_H, v_des, outinfo->ex, outinfo->e_angle);    // control, wheelAngle区间范围[-90, 90]
+        float w = control_unit(cam, L, B, frame_H, v_des, outinfo->ex, outinfo->e_angle);   // control, wheelAngle区间范围[-90, 90]
         // float wheelAngle = control_unit(cam, L, B, 512, v_des, 10, -30);
+
+        float wheelAngle = getWheelAngle(w, v_des, L, B);
+        // cout << "车轮转角：" << wheelAngle << endl;
         cout << "角度偏差: " << outinfo->e_angle << endl;
         cout << "wheelAngle: " << wheelAngle << endl;
         min_angle = min(min_angle, wheelAngle);
         max_angle = max(max_angle, wheelAngle);
-
-
+        
+        // 记录数据
+        ofs << outinfo->ex << " " << outinfo->e_angle << " " << w << " " << wheelAngle << endl;
 
         string signal = angle2signal(serialPort, wheelAngle);      //车轮角度转化为对应的Hex信号
         cout << signal << endl;
@@ -253,6 +267,7 @@ int runCamera(nvinfer1::IExecutionContext *model, SerialPort* serialPort,
 			break;
 		}
     }
+    ofs.close();
     cout<< "min_angle:" << min_angle << endl;
     cout<< "max_angle:" << max_angle << endl;
     cv::destroyAllWindows();
